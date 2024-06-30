@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "149740829514",
+    "project_id": "chat-talk-db",
+    "storage_bucket": "chat-talk-db.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:149740829514:android:a370f4e4ecf85132215fb3",
+        "android_client_info": {
+          "package_name": "com.adtivemm.chat_talk"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAuShMBiX1HtyCmghG-_hUuIXyczzTO_rU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
