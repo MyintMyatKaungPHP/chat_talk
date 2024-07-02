@@ -20,9 +20,13 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void getCurrentUser() async{
-    final user = await _auth.currentUser;
-    if(user != null){
-      loggedInUser = user;
+    try{
+      final user = await _auth.currentUser;
+      if(user != null){
+        loggedInUser = user;
+      }
+    } catch (e){
+      print(e);
     }
   }
 
@@ -33,9 +37,11 @@ class _ChatScreenState extends State<ChatScreen> {
         leading: null,
         actions: <Widget>[
           IconButton(
-              icon: Icon(Icons.close),
+              icon: Icon(Icons.logout),
               onPressed: () {
                 //Implement logout functionality
+                _auth.signOut();
+                Navigator.pop(context);
               }),
         ],
         title: Text('Chat Talk',style: TextStyle(color: Colors.green[900], fontSize: 20),),
