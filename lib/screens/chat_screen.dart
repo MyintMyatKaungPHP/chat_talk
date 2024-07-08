@@ -35,11 +35,11 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  void getMessage() async {
-    await for (var snapshot in _firestore.collection('messages').snapshots()) {
-      for (var message in snapshot.docs) {
-        print(message.data());
-      }
+  void updateTypingStatus(bool isTyping) {
+    if (loggedInUser != null) {
+      _firestore.collection('typingStatus').doc(loggedInUser!.email).set({
+        'isTyping': isTyping,
+      });
     }
   }
 
@@ -52,8 +52,6 @@ class _ChatScreenState extends State<ChatScreen> {
           IconButton(
             icon: Icon(Icons.logout),
             onPressed: () {
-              getMessage();
-              // Implement logout functionality
               _auth.signOut();
               Navigator.pop(context);
             },
@@ -70,10 +68,8 @@ class _ChatScreenState extends State<ChatScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            MessagesStream(
-              firestore: _firestore,
-              loggedInUserEmail: loggedInUser?.email,
-            ),
+            MessagesStream(firestore: _firestore, loggedInUserEmail: loggedInUser?.email),
+            TypingIndicator(firestore: _firestore, loggedInUserEmail: loggedInUser?.email),
             Container(
               decoration: kMessageContainerDecoration,
               child: Row(
@@ -84,21 +80,21 @@ class _ChatScreenState extends State<ChatScreen> {
                       controller: messageTextController,
                       style: TextStyle(color: Colors.black),
                       onChanged: (value) {
-                        // Do something with the user input.
                         messageText = value;
+                        updateTypingStatus(value.isNotEmpty);
                       },
                       decoration: kMessageTextFieldDecoration,
                     ),
                   ),
                   TextButton(
                     onPressed: () {
-                      // Implement send functionality.
                       _firestore.collection('messages').add({
                         'text': messageText,
                         'sender': loggedInUser?.email,
                         'timestamp': FieldValue.serverTimestamp(),
                       });
-                      messageTextController.clear(); // Clear the text box after sending a message
+                      messageTextController.clear();
+                      updateTypingStatus(false);
                     },
                     child: Text(
                       'Send',
@@ -207,6 +203,37 @@ class MessageBubble extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class TypingIndicator extends StatelessWidget {
+  final FirebaseFirestore firestore;
+  final String? loggedInUserEmail;
+
+  TypingIndicator({required this.firestore, this.loggedInUserEmail});
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: firestore.collection('typingStatus').snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return SizedBox.shrink();
+        }
+        List<String> typingUsers = [];
+        for (var doc in snapshot.data!.docs) {
+          if (doc['isTyping'] == true && doc.id != loggedInUserEmail) {
+            typingUsers.add(doc.id);
+          }
+        }
+        return typingUsers.isNotEmpty
+            ? Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Text('${typingUsers.join(', ')} is typing...',style: TextStyle(color: Colors.black),),
+        )
+            : SizedBox.shrink();
+      },
     );
   }
 }
